@@ -7,12 +7,14 @@ namespace PlayerScripts
         [SerializeField] float Sensitivity;
         [SerializeField] Transform Player;
         [SerializeField] float RecoilSpeed = 20;
+        [SerializeField] Transform GunCamera;
         float mouseX;
         float mouseY;
         float xRotation;
         float yRotation;
         float sideRecoil;
         float upRecoil;
+        float rot = 0f;
 
         void Start()
         {
@@ -36,13 +38,20 @@ namespace PlayerScripts
 
             xRotation = Mathf.Clamp(xRotation,-65f,60f);
         
-            transform.localRotation = Quaternion.Euler(xRotation,0f, 0f); 
+            transform.localRotation = Quaternion.Euler(xRotation,0f, rot); 
             Player.rotation = Quaternion.Euler(0,yRotation,0);
+
         }
         public void AddRecoil(float up, float side)
         {
             sideRecoil += side;
             upRecoil += up;
+        }
+
+        public void InvertCamera()
+        {
+            rot = 180f;
+            GunCamera.localRotation = Quaternion.Euler(0f,0f, rot);
         }
     }
 }

@@ -1,13 +1,16 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using PlayerScripts;
+using TMPro;
 using UnityEngine;
+using Random = UnityEngine.Random;
 
 namespace ShootingScripts
 {
-    [RequireComponent(typeof(CameraLook))]
     public class Shooting : MonoBehaviour
     {
         [SerializeField] int Ammo = 15;
+        [SerializeField] TMP_Text AmmoCount;
         [SerializeField] float Damage = 10f;
         [SerializeField] Transform ShootPoint; 
         [SerializeField] GameObject Impact;
@@ -17,50 +20,52 @@ namespace ShootingScripts
         [SerializeField] AudioSource ShootSound;
         [SerializeField] AudioSource ClipOut;  
         [SerializeField] AudioSource ClipIn;
-        bool canShoot;
+        [SerializeField] CameraLook CameraLook;
+        bool canShoot = true;
         bool isAds;
         Target target;
-        CameraLook cameraLook;
         float sideRecoil;
+
+        void Start()
+        {
+            AmmoCount.text = Ammo.ToString(); 
+        }
 
         void Update()
         {
-            isAds = Input.GetMouseButtonDown(1);
+            isAds = Input.GetMouseButton(1);
             AnimGun.SetBool("ADS", isAds);
-       
-            Reload();
 
-            if (!Input.GetMouseButtonDown(0) || Ammo == 0 || !canShoot) 
-                return;
-            Shoot();
-            MuzzleFlash.Play();
-            AnimGun.SetTrigger("Shooting");
-            ShootSound.Play();
-            Ammo--;
-            //ammoCount.text = ammo.ToString(); 
+            if (Input.GetMouseButtonDown(0) && Ammo != 0 && canShoot)
+            {
+                Shoot();
+                MuzzleFlash.Play();
+                AnimGun.SetTrigger("Shooting");
+                ShootSound.Play();
+                Ammo--;
+                AmmoCount.text = Ammo.ToString(); 
 
-            UpRecoil = isAds ? 2 : 10;
- 
-            cameraLook.AddRecoil(UpRecoil / 10, Random.Range(0,2)*2-1);
+                UpRecoil = isAds ? 2 : 10;
+
+                CameraLook.AddRecoil(UpRecoil / 10, Random.Range(0, 2) * 2 - 1);
+            }
+
+            if ((Ammo == 0 || Input.GetKeyDown(KeyCode.R)) && canShoot)
+            {
+                canShoot = false;
+                Ammo = 15;
+                ClipOut.Play();
+
+                AnimGun.SetTrigger("Reloading");
+                StartCoroutine(WaitForReload());
+            }
         }
 
-        void Reload()
-        {
-            if ((Ammo != 0 && !Input.GetKeyDown(KeyCode.R)) || !canShoot) 
-                return;
-       
-            canShoot = false;
-            Ammo = 15;
-            ClipOut.Play();
-
-            AnimGun.SetTrigger("Reloading");
-            StartCoroutine(WaitForReload());
-        }
         IEnumerator WaitForReload()
         {
             yield return new WaitForSeconds(2);
             canShoot = true;
-            //ammoCount.text = ammo.ToString();
+            AmmoCount.text = Ammo.ToString();
             ClipIn.Play();
             AnimGun.SetTrigger("Shooting");
         }
@@ -71,7 +76,7 @@ namespace ShootingScripts
        
             hit.transform.GetComponent<Target>()?.TakeDamage(Damage);
        
-            Instantiate(Impact, hit.point,Quaternion.LookRotation(hit.normal));
+            //Instantiate(Impact, hit.point,Quaternion.LookRotation(hit.normal));
         }
     }
 }

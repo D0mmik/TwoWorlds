@@ -1,18 +1,29 @@
-﻿using UnityEngine;
+﻿using System;
+using PlayerScripts;
+using UnityEngine;
 
 namespace ShootingScripts
 {
     public class Target : MonoBehaviour
     {
-        float health = 50f;
+        [SerializeField] float Health = 50f;
+        GameObject player;
+        FPSController fpsController;
+
+        void Awake()
+        {
+             fpsController = GameObject.FindGameObjectWithTag("Player")?.GetComponent<FPSController>();
+        }
+
         public void TakeDamage(float amount)
         {
-            health -= amount;
-            if(health <= 0f)
+            Health -= amount;
+            if(Health <= 0f)
                 Die();
         
             void Die()
             {
+                fpsController.KillCount++;
                 Destroy(this.gameObject);
             }
         }
